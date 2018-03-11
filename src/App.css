@@ -22,6 +22,25 @@
   font-size: large;
 }
 
+.gallery-wrap{
+  display: flex;
+}
+
+.card{
+  width: 33.33%;
+  background: #f3f3f3;
+  padding: 8px;
+  border-radius: 8px;
+  margin: 8px;
+}
+
+
+.card img{
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
