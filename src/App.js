@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
+import axios from 'axios'
+
+axios.defaults.baseURL = 'http://localhost';
+axios.defaults.headers.post['Content-Type'] = 'multipart/form-data';
+
 
 let userData = {
   user: {
@@ -16,13 +21,14 @@ let userData = {
         imageurl: './assets/images/puppy.jpg'
       },
       {
-        title: 'Strawberry',
+        title: 'Strawberry',  
         story: 'Strawberry from Strawberry Farm in Benguet.',
         imageurl: './assets/images/fruit.jpg'
       }
     ]
   }
 }
+
 
 class Gallery extends Component{
   render(){
@@ -56,12 +62,53 @@ class App extends Component {
     super();
     this.state = {
       serverData: {},
-      searchData: ''
+      searchData: '',
+      responseImages:  [],
+      file: null
     }
   }
 
   componentDidMount(){
     this.setState({serverData: userData})
+
+    axios.get('/photobook-api/photobook-api.php')
+    .then((result)=> {
+      this.setState({
+        responseImages: result.data
+      });
+    })
+  }
+
+  addImage(event){
+    event.preventDefault();
+    let title = this.refs.title.value
+    let story = this.refs.story.value
+    let imageurl = this.refs.photo.files[0].name
+
+    axios.post('/photobook-api/photobook-addImage.php', {
+      title: title,
+      story: story,
+      imageurl: imageurl
+    })
+    .then((result) => {
+      this.setState({
+        responseImages: result.data
+      });
+      console.log(result)
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+    this.refs.title.value = ""
+    this.refs.story.value = ""
+  }
+
+  selectImg(e){
+    this.setState({
+        file: e.target.files[0]
+    })
+    console.log(e.target.files[0])
   }
 
   render() {
@@ -72,13 +119,20 @@ class App extends Component {
         <h1>{this.state.serverData.user.name}'s Gallery </h1>  
         <hr/>
         <div><Filter onSearch={text => this.setState({searchData: text})}></Filter></div>
+        <form onSubmit={this.addImage.bind(this)}>
+          <input type="text" ref="title"/>
+          <input type="text" ref="story"/>
+          <input type="file" ref="photo" name="photo" onChange={this.selectImg.bind(this)} />
+          <button type="submit">Add Image</button>
+        </form>
         <div className="gallery-wrap">
-        {this.state.serverData.user.images.filter(images =>
+        {this.state.responseImages.filter(images =>
             images.title.toLowerCase().includes(
               this.state.searchData.toLowerCase())
-          ).map(gallery =>
-             <Gallery gallery={gallery} />
-        )}
+            ).map(gallery =>
+              <Gallery gallery={gallery} />
+          )
+        }
         </div>
         </div> : <h3>Loading...</h3>
         }

@@ -24,10 +24,11 @@
 
 .gallery-wrap{
   display: flex;
+  flex-flow: wrap;
 }
 
 .card{
-  width: 33.33%;
+  width: 30.95%;
   background: #f3f3f3;
   padding: 8px;
   border-radius: 8px;
