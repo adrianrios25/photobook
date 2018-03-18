@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios'
+import Dropzone from 'react-dropzone'
 
 axios.defaults.baseURL = 'http://localhost';
 axios.defaults.headers.post['Content-Type'] = 'multipart/form-data';
-
 
 let userData = {
   user: {
@@ -64,7 +64,8 @@ class App extends Component {
       serverData: {},
       searchData: '',
       responseImages:  [],
-      file: null
+      files: [],
+      filePreview: ''
     }
   }
 
@@ -83,38 +84,57 @@ class App extends Component {
     event.preventDefault();
     let title = this.refs.title.value
     let story = this.refs.story.value
-    let imageurl = this.refs.photo.files[0].name
-
-    axios.post('/photobook-api/photobook-addImage.php', {
-      title: title,
-      story: story,
-      imageurl: imageurl
-    })
-    .then((result) => {
-      this.setState({
-        responseImages: result.data
-      });
-      console.log(result)
-    })
-    .catch(function (error) {
-      console.log(error);
+    let imageurl = ''
+    console.log(this.state.files)
+    this.state.files.map(file => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("tags", `codeinfuse, medium, gist`);
+      formData.append("upload_preset", "h5b2es9t"); 
+      formData.append("api_key", "528924533891767"); 
+      formData.append("timestamp", (Date.now() / 1000) | 0);
+      
+      //upload image to cloudinary
+      return axios.post("https://api.cloudinary.com/v1_1/adrianweb/image/upload", formData, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      }).then(response => {
+        const data = response.data;
+        imageurl = data.url
+        axios.post('/photobook-api/photobook-addImage.php', {
+          title: title,
+          story: story,
+          imageurl: imageurl
+        })
+        .then((result) => {
+          this.setState({
+            responseImages: result.data,
+            files: [],
+            filePreview: ''
+          });
+          this.refs.title.value = ""
+          this.refs.story.value = ""
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      })
     });
-
-    this.refs.title.value = ""
-    this.refs.story.value = ""
   }
 
-  selectImg(e){
+  onDrop = files => {
+    console.log(files)
     this.setState({
-        file: e.target.files[0]
-    })
-    console.log(e.target.files[0])
+      files,
+      filePreview: files[0].preview
+    });
+
   }
 
   render() {
     return (
       <div className="App">
         {this.state.serverData.user ?
+
         <div>
         <h1>{this.state.serverData.user.name}'s Gallery </h1>  
         <hr/>
@@ -122,18 +142,39 @@ class App extends Component {
         <form onSubmit={this.addImage.bind(this)}>
           <input type="text" ref="title"/>
           <input type="text" ref="story"/>
-          <input type="file" ref="photo" name="photo" onChange={this.selectImg.bind(this)} />
+          <br/>
+          <Dropzone 
+            onDrop={this.onDrop}
+            multiple 
+            accept="image/*" 
+          >
+            <p>Drop your files or click here to upload</p>
+          </Dropzone>
+          <ul>
+            {
+              this.state.files.map(f => <li key={f.name}>{f.name} - {f.size} bytes</li>)
+            }
+          </ul>
+            {this.state.filePreview ?
+                <img src={this.state.filePreview} alt=" "/> : ""
+            }
+              
+          <br/>
           <button type="submit">Add Image</button>
         </form>
-        <div className="gallery-wrap">
-        {this.state.responseImages.filter(images =>
-            images.title.toLowerCase().includes(
-              this.state.searchData.toLowerCase())
-            ).map(gallery =>
-              <Gallery gallery={gallery} />
-          )
+        {this.state.responseImages ?
+          
+          <div className="gallery-wrap">
+
+          {this.state.responseImages.filter(images =>
+              images.title.toLowerCase().includes(
+                this.state.searchData.toLowerCase())
+              ).map(gallery =>
+                <Gallery gallery={gallery} />
+            )
+          }
+          </div> : <h3>No Data</h3>
         }
-        </div>
         </div> : <h3>Loading...</h3>
         }
       </div>
