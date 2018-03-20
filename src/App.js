@@ -34,13 +34,20 @@ class Gallery extends Component{
   render(){
     let gallery = this.props.gallery
     return(
-      
-          <div className="card">
-            <img src={gallery.imageurl} alt=""/>
-            <h2>{gallery.title}</h2>
-            <p>{gallery.story}</p>
+          <div className="col l4 m4 s12">
+            <div className="card">
+              <div className="card-image waves-effect waves-block waves-light">
+                <img src={gallery.imageurl} alt=""/>
+              </div>
+              <div className="card-content">
+                <span className="card-title activator grey-text text-darken-4">{gallery.title} <i className="material-icons right">more_vert</i></span>
+              </div>
+              <div className="card-reveal">
+                <span className="card-title grey-text text-darken-4">{gallery.title}<i className="material-icons right">close</i></span>
+                <p>{gallery.story}</p>
+              </div>
+            </div>
           </div>
-     
     )
   }
 }
@@ -49,8 +56,14 @@ class Filter extends Component{
   render(){
     return(
       <div>
-        <input type="text" name="" id="" placeholder="Search" onKeyUp={
+         <div className="row">
+           <div className="input-field col s12">
+            <i className="material-icons prefix">search</i>
+             <input id="icon_prefix" type="text" className="validate" onKeyUp={
             event => this.props.onSearch(event.target.value)}/>
+             <label for="icon_prefix">Search</label>
+        </div>
+        </div>
       </div>
     )
   }
@@ -134,47 +147,82 @@ class App extends Component {
     return (
       <div className="App">
         {this.state.serverData.user ?
-
+        
         <div>
-        <h1>{this.state.serverData.user.name}'s Gallery </h1>  
-        <hr/>
-        <div><Filter onSearch={text => this.setState({searchData: text})}></Filter></div>
-        <form onSubmit={this.addImage.bind(this)}>
-          <input type="text" ref="title"/>
-          <input type="text" ref="story"/>
-          <br/>
-          <Dropzone 
-            onDrop={this.onDrop}
-            multiple 
-            accept="image/*" 
-          >
-            <p>Drop your files or click here to upload</p>
-          </Dropzone>
-          <ul>
-            {
-              this.state.files.map(f => <li key={f.name}>{f.name} - {f.size} bytes</li>)
-            }
-          </ul>
-            {this.state.filePreview ?
-                <img src={this.state.filePreview} alt=" "/> : ""
-            }
-              
-          <br/>
-          <button type="submit">Add Image</button>
-        </form>
-        {this.state.responseImages ?
-          
-          <div className="gallery-wrap">
+        <div className="row">
+          <div className="col s12 m3">
+            <div className="card-panel">
+              <h4>Add New Image </h4>  
+              <hr/>
+              <div className="row">
+                <form className="col s12" onSubmit={this.addImage.bind(this)}>
+                  <div className="row">
+                    <div className="input-field col s12">
+                      <input id="icon_prefix" type="text" className="validate" ref="title" />
+                      <label for="icon_prefix">Title</label>
+                    </div>
+                    <div className="input-field col s12">
+                      <input id="icon_telephone" type="tel" className="validate" ref="story" />
+                      <label for="icon_telephone">Story</label>
+                    </div>
+                  </div>
 
-          {this.state.responseImages.filter(images =>
-              images.title.toLowerCase().includes(
-                this.state.searchData.toLowerCase())
-              ).map(gallery =>
-                <Gallery gallery={gallery} />
-            )
-          }
-          </div> : <h3>No Data</h3>
-        }
+                  <div className="row">
+                    <div className="col s12">
+                    <Dropzone 
+                      className="dropzone"
+                      onDrop={this.onDrop}
+                      multiple 
+                      accept="image/*" 
+                    >
+                      <p className="center-align">Drop your Image or click here to upload</p>
+                    </Dropzone>
+                    
+                    <ul>
+                      {
+                        this.state.files.map(f => <li key={f.name}>{f.name} - {f.size} bytes</li>)
+                      }
+                    </ul>
+                    </div>
+                  </div>
+                    {this.state.filePreview ?
+                    <div className="row">
+                      <div className="col l4 m4 s12 offset-l4 offset-m4 center-align">
+                        <img src={this.state.filePreview} alt="" className="responsive-img"/> 
+                      </div>
+                    </div> : ""
+                    }
+                    <button className="btn btn-green" type="submit">Submit</button>
+                  
+                </form>
+              </div>
+              
+            </div>
+          </div>
+          <div className="col s12 m9">
+            <div className="card-panel">
+              <h1>{this.state.serverData.user.name}'s Gallery </h1>  
+              <hr/>
+              <div className="row">
+                <Filter onSearch={text => this.setState({searchData: text})}></Filter>
+              </div>
+              {this.state.responseImages ?
+                
+                <div className="row">
+                {this.state.responseImages.filter(images =>
+                    images.title.toLowerCase().includes(
+                      this.state.searchData.toLowerCase())
+                    ).map(gallery =>
+                      <Gallery gallery={gallery} />
+                  )
+                }
+                </div> 
+
+                : <h3>No Data</h3>
+              }
+            </div>
+          </div>
+        </div>
         </div> : <h3>Loading...</h3>
         }
       </div>
